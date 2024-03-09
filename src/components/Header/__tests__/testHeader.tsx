@@ -10,41 +10,54 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('Header', () => {
-    beforeAll(() => {
-        jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-        jest.clearAllTimers();
-    });
-
-    afterAll(() => {
-        jest.useRealTimers();
-    });
-
-    it('should render header', () => {
-        render(<Header title="Header" />);
+    it('should render header with given title', () => {
+        render(<Header title='Header' />);
 
         expect(screen.getByText('Header')).toBeInTheDocument();
     });
 
-    it('should render back button in header', () => {
-        render(<Header title="Header" showBackButton />);
+    it('should render back button in header if enabled', () => {
+        render(<Header title='Header' showBackButton />);
 
-        expect(screen.getByRole('button')).toBeInTheDocument();
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
     });
 
-    it('should not render back button in header', () => {
-        render(<Header title="Header" showBackButton={false} />);
+    it('should not render back button in header if disabled', () => {
+        render(<Header title='Header' showBackButton={false} />);
 
-        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('back-button')).not.toBeInTheDocument();
     });
 
     it('should navigate back when back button is clicked', () => {
-        render(<Header title="Header" showBackButton />);
+        render(<Header title='Header' showBackButton />);
 
-        fireEvent.click(screen.getByRole('button'));
+        fireEvent.click(screen.getByTestId('back-button'));
 
-        expect(mockUseNavigate).toHaveBeenCalled();
+        expect(mockUseNavigate).toHaveBeenCalledTimes(1);
     });
+
+    it('should render search icon button in header if enabled', () => {
+        render(<Header title='Header' hasSearchIcon />);
+
+        expect(screen.getByTestId('search-icon-button')).toBeInTheDocument();
+    });
+
+    it('should render search icon button in header if disabled', () => {
+        render(<Header title='Header' hasSearchIcon={false} />);
+
+        expect(screen.queryByTestId('search-icon-button')).not.toBeInTheDocument();
+    });
+
+    it('should toggle search bar visibility when search bar icon is clicked', () => {
+        render(<Header title='Header' hasSearchIcon />);
+        const searchBar = screen.getByTestId('search-bar')
+
+        expect(searchBar).toBeInTheDocument();
+
+        fireEvent.click(screen.getByTestId('search-icon-button'));
+        expect(searchBar).toHaveStyle('visibility: visible')
+
+        fireEvent.click(screen.getByTestId('search-icon-button'));
+        expect(searchBar).toHaveStyle('visibility: hidden')
+    })
 });

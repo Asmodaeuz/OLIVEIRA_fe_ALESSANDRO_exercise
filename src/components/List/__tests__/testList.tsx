@@ -7,57 +7,43 @@ jest.mock('react-router-dom', () => ({
     useNavigate: () => jest.fn(),
 }));
 
+const item = [
+    {
+        id: '1',
+        dataRows: [
+            {
+                key: 'columnKey1',
+                value: 'columnValue1',
+            },
+        ],
+        navigationProps: {
+            id: '1',
+            name: 'John Doe',
+        },
+    },
+];
+
 describe('List', () => {
     it('should render spinner and not render items when it is loading', () => {
-        const items = [
-            {
-                id: '1',
-                columns: [
-                    {
-                        key: 'columnKey1',
-                        value: 'columnValue1',
-                    },
-                ],
-            },
-        ];
-        render(<List isLoading items={items} />);
+        render(<List isLoading items={item} />);
 
         expect(screen.getByTestId('spinner')).toBeInTheDocument();
         expect(screen.queryByTestId('cardContainer')).not.toBeInTheDocument();
     });
 
     it('should not render spinner and render items when it is not loading', () => {
-        const items = [
-            {
-                id: '1',
-                columns: [
-                    {
-                        key: 'columnKey1',
-                        value: 'columnValue1',
-                    },
-                ],
-            },
-        ];
-        render(<List isLoading={false} items={items} />);
+        render(<List isLoading={false} items={item} />);
 
         expect(screen.queryByTestId('spinner')).not.toBeInTheDocument();
         expect(screen.getByTestId('cardContainer-1')).toBeInTheDocument();
     });
 
     it('should render multiple card when multiple items', () => {
-        const items = [
-            {
-                id: '1',
-                columns: [
-                    {
-                        key: 'columnKey1',
-                        value: 'columnValue1',
-                    },
-                ],
-            },
+        const itemsList = [
+            ...item,
             {
                 id: '2',
-                columns: [
+                dataRows: [
                     {
                         key: 'columnKey2',
                         value: 'columnValue2',
@@ -65,7 +51,7 @@ describe('List', () => {
                 ],
             },
         ];
-        render(<List isLoading={false} items={items} />);
+        render(<List isLoading={false} items={itemsList} />);
 
         expect(screen.getByTestId('cardContainer-1')).toBeInTheDocument();
         expect(screen.getByTestId('cardContainer-2')).toBeInTheDocument();

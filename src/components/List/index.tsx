@@ -1,26 +1,28 @@
 import * as React from 'react';
 import {ListItem} from 'types';
-import Card from '../Card';
-import {Spinner} from '../Spinner';
-import {Container} from './styles';
+import {Container} from 'components/GlobalComponents';
+import Card from 'components/Card';
+import {Spinner} from 'components/Spinner';
 
-interface Props {
+interface ListProps {
     items?: ListItem[];
     hasNavigation?: boolean;
-    isLoading: string;
+    standardSize?: boolean;
+    isLoading: boolean;
 }
 
-const List = ({items, hasNavigation = true, isLoading}: Props) => {
+const List = ({items, isLoading, standardSize, hasNavigation = true}: ListProps): JSX.Element => {
     return (
-        <Container>
+        <Container row>
             {isLoading && <Spinner />}
             {!isLoading &&
-                items.map(({url, id, columns, navigationProps}, index) => {
+                items.map(({url, id, dataRows, navigationProps}, index) => {
                     return (
                         <Card
                             key={`${id}-${index}`}
                             id={id}
-                            columns={columns}
+                            dataRows={dataRows}
+                            standardSize={standardSize}
                             navigationProps={navigationProps}
                             hasNavigation={hasNavigation}
                             url={url}
