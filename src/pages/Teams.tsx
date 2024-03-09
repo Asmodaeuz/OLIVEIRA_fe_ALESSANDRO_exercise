@@ -1,44 +1,34 @@
 import * as React from 'react';
-import {ListItem, Teams as TeamsList} from 'types';
-import {getTeams as fetchTeams} from '../api';
-import Header from '../components/Header';
-import List from '../components/List';
-import {Container} from '../components/GlobalComponents';
-
-var MapT = (teams: TeamsList[]) => {
-    return teams.map(team => {
-        var columns = [
-            {
-                key: 'Name',
-                value: team.name,
-            },
-        ];
-        return {
-            id: team.id,
-            url: `/team/${team.id}`,
-            columns,
-            navigationProps: team,
-        } as ListItem;
-    });
-};
+import Header from 'components/Header';
+import List from 'components/List';
+import {Container} from 'components/GlobalComponents';
+import {useTeamSearch} from 'hooks/useSearch';
+import {useDataMapper} from 'hooks/useDataMapper';
+import {Spinner} from 'components/Spinner';
 
 const Teams = () => {
-    const [teams, setTeams] = React.useState<any>([]);
-    const [isLoading, setIsLoading] = React.useState<any>(true);
+    const {isLoading, filteredItems, setSearchQuery} = useTeamSearch();
+    const {mapTeamInfo} = useDataMapper();
+    const teams = filteredItems ? filteredItems.map(team => mapTeamInfo(team)) : [];
 
-    React.useEffect(() => {
-        const getTeams = async () => {
-            const response = await fetchTeams();
-            setTeams(response);
-            setIsLoading(false);
-        };
-        getTeams();
-    }, []);
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+    };
 
     return (
-        <Container>
-            <Header title="Teams" showBackButton={false} />
-            <List items={MapT(teams)} isLoading={isLoading} />
+        <Container className="margin-reset">
+            {isLoading && <Spinner />}
+            {!isLoading && (
+                <React.Fragment>
+                    <Header
+                        title="Teams"
+                        showBackButton={false}
+                        handleSearch={handleSearch}
+                        isLoading={isLoading}
+                    />
+                    <List items={teams} isLoading={isLoading} standardSize />
+                </React.Fragment>
+            )}
         </Container>
     );
 };

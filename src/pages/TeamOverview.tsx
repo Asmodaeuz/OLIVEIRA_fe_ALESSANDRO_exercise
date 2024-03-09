@@ -1,94 +1,42 @@
 import * as React from 'react';
 import {useLocation, useParams} from 'react-router-dom';
-import {ListItem, UserData} from 'types';
-import {getTeamOverview, getUserData} from '../api';
-import Card from '../components/Card';
-import {Container} from '../components/GlobalComponents';
-import Header from '../components/Header';
-import List from '../components/List';
-
-var mapArray = (users: UserData[]) => {
-    return users.map(u => {
-        var columns = [
-            {
-                key: 'Name',
-                value: `${u.firstName} ${u.lastName}`,
-            },
-            {
-                key: 'Display Name',
-                value: u.displayName,
-            },
-            {
-                key: 'Location',
-                value: u.location,
-            },
-        ];
-        return {
-            id: u.id,
-            url: `/user/${u.id}`,
-            columns,
-            navigationProps: u,
-        };
-    }) as ListItem[];
-};
-
-var mapTLead = tlead => {
-    var columns = [
-        {
-            key: 'Team Lead',
-            value: '',
-        },
-        {
-            key: 'Name',
-            value: `${tlead.firstName} ${tlead.lastName}`,
-        },
-        {
-            key: 'Display Name',
-            value: tlead.displayName,
-        },
-        {
-            key: 'Location',
-            value: tlead.location,
-        },
-    ];
-    return <Card columns={columns} url={`/user/${tlead.id}`} navigationProps={tlead} />;
-};
-
-interface PageState {
-    teamLead?: UserData;
-    teamMembers?: UserData[];
-}
+import Card from 'components/Card';
+import {Container} from 'components/GlobalComponents';
+import Header from 'components/Header';
+import List from 'components/List';
+import {useUserSearch} from 'hooks/useSearch';
+import {useDataMapper} from 'hooks/useDataMapper';
 
 const TeamOverview = () => {
     const location = useLocation();
     const {teamId} = useParams();
-    const [pageData, setPageData] = React.useState<PageState>({});
-    const [isLoading, setIsLoading] = React.useState<boolean>(true);
-
-    React.useEffect(() => {
-        var getTeamUsers = async () => {
-            const {teamLeadId, teamMemberIds = []} = await getTeamOverview(teamId);
-            const teamLead = await getUserData(teamLeadId);
-
-            const teamMembers = [];
-            for(var teamMemberId of teamMemberIds) {
-                const data = await getUserData(teamMemberId);
-                teamMembers.push(data);
-            }
-            setPageData({
-                teamLead,
-                teamMembers,
-            });
-            setIsLoading(false);
-        };
-        getTeamUsers();
-    }, [teamId]);
+    const {teamLead, teamMembers, isLoading, filteredItems, setSearchQuery} = useUserSearch(teamId);
+    
+    const {mapUserInfo} = useDataMapper();
+    const teamLeadInfo = mapUserInfo(teamLead, 'lead');
+    const list = filteredItems.length ? filteredItems : teamMembers;
+    const teamMemberInfo = list?.filter(member => member.id !== teamLead.id).map(member => mapUserInfo(member, 'member'));
+    const isTeamLeadInFilteredUsers = !isLoading && teamLead && (filteredItems.length === 0 || filteredItems.includes(teamLead));
+    
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+    };
 
     return (
-        <Container>
-            <Header title={`Team ${location.state.name}`} />
-            {!isLoading && mapTLead(pageData.teamLead)}
-            <List items={mapArray(pageData?.teamMembers ?? [])} isLoading={isLoading} />
+        <Container className="margin-reset">
+            <Header title={`Team ${location.state.name}`} handleSearch={handleSearch} isLoading={isLoading} />
+            {isTeamLeadInFilteredUsers && 
+                <Card 
+                    id={teamLeadInfo.id}
+                    dataRows={teamLeadInfo.dataRows || []}
+                    url={`/user/${teamLeadInfo.id}`}
+                    navigationProps={teamLeadInfo.navigationProps}
+                />
+            }
+            <List
+                items={teamMemberInfo}
+                isLoading={isLoading}
+            />
         </Container>
     );
 };

@@ -1,12 +1,13 @@
 import * as React from 'react';
 import {render, screen, waitFor} from '@testing-library/react';
-import * as API from '../../api';
-import TeamOverview from '../TeamOverview';
+import * as API from 'api';
+import TeamOverview from 'pages/TeamOverview';
+import {TeamOverview as TeamInfo, UserData} from 'types';
 
 jest.mock('react-router-dom', () => ({
     useLocation: () => ({
         state: {
-            teamName: 'Some Team',
+            name: 'Some Team',
         },
     }),
     useNavigate: () => ({}),
@@ -29,26 +30,62 @@ describe('TeamOverview', () => {
     });
 
     it('should render team overview users', async () => {
-        const teamOverview = {
+        const teamOverview: TeamInfo = {
             id: '1',
-            teamLeadId: '2',
-            teamMemberIds: ['3', '4', '5'],
+            teamLeadId: '1',
+            teamMemberIds: ['2', '3', '4'],
         };
-        const userData = {
-            id: '2',
-            firstName: 'userData',
-            lastName: 'userData',
-            displayName: 'userData',
+
+        const teamLeadUserData: UserData = {
+            id: '1',
+            firstName: 'John',
+            lastName: 'Doe',
+            displayName: 'JohnDoe',
             location: '',
             avatar: '',
         };
-        jest.spyOn(API, 'getTeamOverview').mockImplementationOnce(() => Promise.resolve({} as any));
-        jest.spyOn(API, 'getUserData').mockImplementationOnce(() => Promise.resolve({} as any));
+
+        const teamMemberUserData: UserData[] = [
+            {
+                id: '2',
+                firstName: 'Jane',
+                lastName: 'Smith',
+                displayName: 'JaneSmith',
+                location: '',
+                avatar: '',
+            },
+            {
+                id: '3',
+                firstName: 'Bob',
+                lastName: 'Johnson',
+                displayName: 'BobJohnson',
+                location: '',
+                avatar: '',
+            },
+            {
+                id: '4',
+                firstName: 'Alice',
+                lastName: 'Williams',
+                displayName: 'AliceWilliams',
+                location: '',
+                avatar: '',
+            },
+        ];
+
+        jest.spyOn(API, 'getTeamOverview').mockResolvedValueOnce(teamOverview);
+        jest.spyOn(API, 'getUserData')
+            .mockResolvedValueOnce(teamLeadUserData) 
+            .mockResolvedValueOnce(teamMemberUserData[0]) 
+            .mockResolvedValueOnce(teamMemberUserData[1]) 
+            .mockResolvedValueOnce(teamMemberUserData[2]);
 
         render(<TeamOverview />);
 
         await waitFor(() => {
-            expect(screen.queryAllByText('userData')).toHaveLength(4);
+            expect(screen.queryByText('John Doe')).toBeInTheDocument(); 
+            expect(screen.queryByText('Jane Smith')).toBeInTheDocument(); 
+            expect(screen.queryByText('Bob Johnson')).toBeInTheDocument();
+            expect(screen.queryByText('Alice Williams')).toBeInTheDocument(); 
         });
     });
 });

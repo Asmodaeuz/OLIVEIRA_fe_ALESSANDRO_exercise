@@ -9,6 +9,11 @@ export interface TeamOverview {
     teamMemberIds: string[];
 }
 
+export interface TeamInfoState {
+    teamLead?: UserData;
+    teamMembers?: UserData[];
+}
+
 export interface UserData {
     id: string;
     firstName: string;
@@ -26,6 +31,6 @@ export interface ListItemColumn {
 export interface ListItem {
     id: string;
     url?: string;
-    columns: Array<ListItemColumn>;
+    dataRows: Array<ListItemColumn>;
     navigationProps?: UserData | Teams;
 }
